@@ -1763,7 +1763,7 @@ static void osdElementSys(osdElementParms_t *element)
 }
 #endif
 
-// --- add somewhere above osdElementDrawFunction[] ---
+
 static void osdElementAirmodeOff(osdElementParms_t *e)
 {
     // Only show when actually flying (armed) AND airmode is NOT enabled
