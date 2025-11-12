@@ -1763,6 +1763,18 @@ static void osdElementSys(osdElementParms_t *element)
 }
 #endif
 
+// --- add somewhere above osdElementDrawFunction[] ---
+static void osdElementAirmodeOff(osdElementParms_t *e)
+{
+    // Only show when actually flying (armed) AND airmode is NOT enabled
+    if (ARMING_FLAG(ARMED) && !airmodeIsEnabled()) {
+        tfp_sprintf(e->buff, "AIRMODE OFF");
+        // leave e->drawElement = true (default) so core pushes buff via osdDisplayWrite()
+    } else {
+        e->drawElement = false; // hide when airmode is on / disarmed
+    }
+}
+
 // Define the order in which the elements are drawn.
 // Elements positioned later in the list will overlay the earlier
 // ones if their character positions overlap
@@ -1779,6 +1791,7 @@ static const uint8_t osdElementDisplayOrder[] = {
     OSD_ITEM_TIMER_2,
     OSD_REMAINING_TIME_ESTIMATE,
     OSD_FLYMODE,
+    OSD_AIRMODE_OFF,
     OSD_THROTTLE_POS,
     OSD_VTX_CHANNEL,
     OSD_CURRENT_DRAW,
@@ -1881,6 +1894,7 @@ const osdElementDrawFn osdElementDrawFunction[OSD_ITEM_COUNT] = {
     [OSD_ITEM_TIMER_1]            = osdElementTimer,
     [OSD_ITEM_TIMER_2]            = osdElementTimer,
     [OSD_FLYMODE]                 = osdElementFlymode,
+    [OSD_AIRMODE_OFF]             = osdElementAirmodeOff,
     [OSD_CRAFT_NAME]              = NULL,  // only has background
     [OSD_THROTTLE_POS]            = osdElementThrottlePosition,
 #ifdef USE_VTX_COMMON
@@ -2435,6 +2449,13 @@ void osdUpdateAlarms(void)
         SET_BLINK(OSD_ALTITUDE);
     } else {
         CLR_BLINK(OSD_ALTITUDE);
+    }
+
+        // Blink the AIRMODE_OFF OSD element while armed if Airmode is NOT enabled
+    if (ARMING_FLAG(ARMED) && !airmodeIsEnabled()) {
+        SET_BLINK(OSD_AIRMODE_OFF);
+    } else {
+        CLR_BLINK(OSD_AIRMODE_OFF);
     }
 
 #ifdef USE_GPS
