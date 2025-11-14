@@ -150,6 +150,12 @@ static bool suppressStatsDisplay = false;
 
 static bool backgroundLayerSupported = false;
 
+// Track the minimum *cell* voltage for the entire power session (centivolts)
+static int16_t osdMinCellVoltageSession = 5000; // sentinel high
+
+int16_t osdGetSessionMinCellVoltage(void) { return osdMinCellVoltageSession; }
+void osdResetSessionMinCellVoltage(void) { osdMinCellVoltageSession = 5000; }
+
 #ifdef USE_ESC_SENSOR
 escSensorData_t *osdEscDataCombined;
 #endif
@@ -158,7 +164,7 @@ STATIC_ASSERT(OSD_POS_MAX == OSD_POS(63,31), OSD_POS_MAX_incorrect);
 
 PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 13);
 
-PG_REGISTER_WITH_RESET_FN(osdElementConfig_t, osdElementConfig, PG_OSD_ELEMENT_CONFIG, 1);
+PG_REGISTER_WITH_RESET_FN(osdElementConfig_t, osdElementConfig, PG_OSD_ELEMENT_CONFIG, 2);
 
 // Controls the display order of the OSD post-flight statistics.
 // Adjust the ordering here to control how the post-flight stats are presented.
@@ -516,6 +522,8 @@ static void osdCompleteInitialization(void)
     osdElementsInit(backgroundLayerSupported);
     osdAnalyzeActiveElements();
 
+    osdResetSessionMinCellVoltage(); 
+
     osdIsReady = true;
 }
 
@@ -641,11 +649,25 @@ static void osdUpdateStats(void)
         stats.min_voltage = value;
     }
 
-    value = getBatteryAverageCellVoltage();           // centivolts per cell
-    if (stats.min_cell_voltage > value) {
-        stats.min_cell_voltage = value;
+    // Per-arm minimum (centivolts total OR per-cell depending on stat_show_cell_value)
+    value = getStatsVoltage();
+    if (stats.min_voltage > value) {
+        stats.min_voltage = value;
     }
 
+    // Read average *cell* voltage once (centivolts per cell)
+    const uint16_t cellCv = getBatteryAverageCellVoltage();
+
+    // Per-arm minimum *cell* voltage
+    if (stats.min_cell_voltage > cellCv) {
+        stats.min_cell_voltage = cellCv;
+    }
+
+    // Whole-battery (power-session) minimum *cell* voltage
+    if (cellCv != 0 && cellCv < (uint16_t)osdMinCellVoltageSession) {
+        osdMinCellVoltageSession = (int16_t)cellCv;
+    }
+    
     value = getAmperage() / 100;
     if (stats.max_current < value) {
         stats.max_current = value;

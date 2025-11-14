@@ -190,6 +190,7 @@ typedef enum {
     OSD_GPS_LAP_TIME_PREVIOUS,
     OSD_GPS_LAP_TIME_BEST3,
     OSD_MIN_CELL_VOLTAGE,
+    OSD_MIN_CELL_VOLTAGE_SESSION,
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
 
@@ -413,5 +414,10 @@ bool osdElementVisible(uint16_t value);
 bool osdGetVisualBeeperState(void);
 void osdSetVisualBeeperState(bool state);
 statistic_t *osdGetStats(void);
+
+// Per-battery (power-session) minimum cell voltage API
+int16_t osdGetSessionMinCellVoltage(void);
+void    osdResetSessionMinCellVoltage(void);
+
 bool osdNeedsAccelerometer(void);
 int osdPrintFloat(char *buffer, char leadingSymbol, float value, char *formatString, unsigned decimalPlaces, bool round, char trailingSymbol);

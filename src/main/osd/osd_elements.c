@@ -810,6 +810,19 @@ static void osdElementMinCellVoltage(osdElementParms_t *element)
     osdPrintFloat(element->buff, osdGetBatterySymbol(toShow), toShow / 100.0f, "", 2, false, SYM_VOLT);
 }
 
+static void osdElementMinCellVoltageSession(osdElementParms_t *element)
+{
+    int16_t cv = osdGetSessionMinCellVoltage();  // centivolts per cell
+
+    // Fallback to current avg cell if session min isn't initialized yet
+    if (cv <= 0 || cv >= 5000) {
+        cv = getBatteryAverageCellVoltage();
+    }
+
+    // Use the SAME icon chooser as your other cell-voltage element
+    osdPrintFloat(element->buff, osdGetBatterySymbol(cv), cv / 100.0f, "", 2, false, SYM_VOLT);
+}
+
 static void osdElementCompassBar(osdElementParms_t *element)
 {
     memcpy(element->buff, compassBar + osdGetHeadingIntoDiscreteDirections(DECIDEGREES_TO_DEGREES(attitude.values.yaw), 16), 9);
@@ -1784,6 +1797,7 @@ static void osdElementSys(osdElementParms_t *element)
 static const uint8_t osdElementDisplayOrder[] = {
     OSD_MAIN_BATT_VOLTAGE,
     OSD_MIN_CELL_VOLTAGE,
+    OSD_MIN_CELL_VOLTAGE_SESSION,
     OSD_RSSI_VALUE,
     OSD_CROSSHAIRS,
     OSD_HORIZON_SIDEBARS,
@@ -1886,6 +1900,7 @@ const osdElementDrawFn osdElementDrawFunction[OSD_ITEM_COUNT] = {
     [OSD_RSSI_VALUE]              = osdElementRssi,
     [OSD_MAIN_BATT_VOLTAGE]       = osdElementMainBatteryVoltage,
     [OSD_MIN_CELL_VOLTAGE]        = osdElementMinCellVoltage,
+    [OSD_MIN_CELL_VOLTAGE_SESSION] = osdElementMinCellVoltageSession,
     [OSD_CROSSHAIRS]              = osdElementCrosshairs,  // only has background, but needs to be over other elements (like artificial horizon)
 #ifdef USE_ACC
     [OSD_ARTIFICIAL_HORIZON]      = osdElementArtificialHorizon,
