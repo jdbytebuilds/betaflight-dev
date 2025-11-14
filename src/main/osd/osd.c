@@ -649,12 +649,6 @@ static void osdUpdateStats(void)
         stats.min_voltage = value;
     }
 
-    // Per-arm minimum (centivolts total OR per-cell depending on stat_show_cell_value)
-    value = getStatsVoltage();
-    if (stats.min_voltage > value) {
-        stats.min_voltage = value;
-    }
-
     // Read average *cell* voltage once (centivolts per cell)
     const uint16_t cellCv = getBatteryAverageCellVoltage();
 
