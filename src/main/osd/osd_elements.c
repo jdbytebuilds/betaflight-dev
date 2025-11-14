@@ -798,29 +798,32 @@ static void osdElementAverageCellVoltage(osdElementParms_t *element)
     osdPrintFloat(element->buff, osdGetBatterySymbol(cellV), cellV / 100.0f, "", 2, false, SYM_VOLT);
 }
 
-static void osdElementMinCellVoltage(osdElementParms_t *element)
+static void osdElementMinCellVoltage(osdElementParms_t *e)
 {
-    // Show the minimum average cell voltage seen this flight (resets on arm).
-    const int minCell = osdGetStats()->min_cell_voltage; // centivolts
+    // Minimum avg cell voltage this flight - Resets on ARM (centivolts).
+    int16_t v = (int16_t)osdGetStats()->min_cell_voltage;
 
-    // If never updated (e.g. never armed yet), show current avg cell as a reasonable fallback.
-    const int toShow = (minCell > 0 && minCell < 5000) ? minCell : getBatteryAverageCellVoltage();
-
-    // Choose a battery glyph based on cell voltage and print with 2 decimals
-    osdPrintFloat(element->buff, osdGetBatterySymbol(toShow), toShow / 100.0f, "", 2, false, SYM_VOLT);
-}
-
-static void osdElementMinCellVoltageSession(osdElementParms_t *element)
-{
-    int16_t cv = osdGetSessionMinCellVoltage();  // centivolts per cell
-
-    // Fallback to current avg cell if session min isn't initialized yet
-    if (cv <= 0 || cv >= 5000) {
-        cv = getBatteryAverageCellVoltage();
+    // Fallback to current avg cell if not initialized yet.
+    if (v < 1 || v > 4999) {
+        v = getBatteryAverageCellVoltage();
     }
 
-    // Use the SAME icon chooser as your other cell-voltage element
-    osdPrintFloat(element->buff, osdGetBatterySymbol(cv), cv / 100.0f, "", 2, false, SYM_VOLT);
+    // Show a battery icon that matches the voltage level
+    osdPrintFloat(e->buff, osdGetBatterySymbol(v), v / 100.0f, "", 2, false, SYM_VOLT);
+}
+
+static void osdElementMinCellVoltageSession(osdElementParms_t *e)
+{
+    // Minimum avg cell voltage for the whole power session (centivolts).
+    int16_t v = osdGetSessionMinCellVoltage();
+
+    // Fallback to current avg cell if not initialized yet.
+    if (v < 1 || v > 4999) {
+        v = getBatteryAverageCellVoltage();
+    }
+
+    // Show a battery icon that matches the voltage level
+    osdPrintFloat(e->buff, osdGetBatterySymbol(v), v / 100.0f, "", 2, false, SYM_VOLT);
 }
 
 static void osdElementCompassBar(osdElementParms_t *element)

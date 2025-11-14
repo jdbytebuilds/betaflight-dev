@@ -592,7 +592,7 @@ static void osdResetStats(void)
     stats.max_current     = 0;
     stats.max_speed       = 0;
     stats.min_voltage     = 5000;
-    stats.min_cell_voltage = 500;
+    stats.min_cell_voltage = 5000;
     stats.end_voltage     = 0;
     stats.min_rssi        = 99; // percent
     stats.max_altitude    = 0;
@@ -667,7 +667,7 @@ static void osdUpdateStats(void)
     if (cellCv != 0 && cellCv < (uint16_t)osdMinCellVoltageSession) {
         osdMinCellVoltageSession = (int16_t)cellCv;
     }
-    
+
     value = getAmperage() / 100;
     if (stats.max_current < value) {
         stats.max_current = value;
