@@ -189,6 +189,7 @@ typedef enum {
     OSD_GPS_LAP_TIME_CURRENT,
     OSD_GPS_LAP_TIME_PREVIOUS,
     OSD_GPS_LAP_TIME_BEST3,
+    OSD_MIN_CELL_VOLTAGE,
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
 
@@ -369,6 +370,7 @@ typedef struct statistic_s {
     timeUs_t armed_time;
     int16_t max_speed;
     int16_t min_voltage; // /100
+    int16_t min_cell_voltage; // /100 (average cell, minimum during flight)
     uint16_t end_voltage;
     int16_t max_current; // /10
     uint8_t min_rssi;

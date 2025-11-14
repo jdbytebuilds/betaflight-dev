@@ -156,7 +156,7 @@ escSensorData_t *osdEscDataCombined;
 
 STATIC_ASSERT(OSD_POS_MAX == OSD_POS(63,31), OSD_POS_MAX_incorrect);
 
-PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 12);
+PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 13);
 
 PG_REGISTER_WITH_RESET_FN(osdElementConfig_t, osdElementConfig, PG_OSD_ELEMENT_CONFIG, 1);
 
@@ -584,6 +584,7 @@ static void osdResetStats(void)
     stats.max_current     = 0;
     stats.max_speed       = 0;
     stats.min_voltage     = 5000;
+    stats.min_cell_voltage = 500;
     stats.end_voltage     = 0;
     stats.min_rssi        = 99; // percent
     stats.max_altitude    = 0;
@@ -638,6 +639,11 @@ static void osdUpdateStats(void)
     value = getStatsVoltage();
     if (stats.min_voltage > value) {
         stats.min_voltage = value;
+    }
+
+    value = getBatteryAverageCellVoltage();           // centivolts per cell
+    if (stats.min_cell_voltage > value) {
+        stats.min_cell_voltage = value;
     }
 
     value = getAmperage() / 100;

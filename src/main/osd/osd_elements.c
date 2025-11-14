@@ -798,6 +798,18 @@ static void osdElementAverageCellVoltage(osdElementParms_t *element)
     osdPrintFloat(element->buff, osdGetBatterySymbol(cellV), cellV / 100.0f, "", 2, false, SYM_VOLT);
 }
 
+static void osdElementMinCellVoltage(osdElementParms_t *element)
+{
+    // Show the minimum average cell voltage seen this flight (resets on arm).
+    const int minCell = osdGetStats()->min_cell_voltage; // centivolts
+
+    // If never updated (e.g. never armed yet), show current avg cell as a reasonable fallback.
+    const int toShow = (minCell > 0 && minCell < 5000) ? minCell : getBatteryAverageCellVoltage();
+
+    // Choose a battery glyph based on cell voltage and print with 2 decimals
+    osdPrintFloat(element->buff, osdGetBatterySymbol(toShow), toShow / 100.0f, "", 2, false, SYM_VOLT);
+}
+
 static void osdElementCompassBar(osdElementParms_t *element)
 {
     memcpy(element->buff, compassBar + osdGetHeadingIntoDiscreteDirections(DECIDEGREES_TO_DEGREES(attitude.values.yaw), 16), 9);
@@ -1771,6 +1783,7 @@ static void osdElementSys(osdElementParms_t *element)
 
 static const uint8_t osdElementDisplayOrder[] = {
     OSD_MAIN_BATT_VOLTAGE,
+    OSD_MIN_CELL_VOLTAGE,
     OSD_RSSI_VALUE,
     OSD_CROSSHAIRS,
     OSD_HORIZON_SIDEBARS,
@@ -1872,6 +1885,7 @@ const osdElementDrawFn osdElementDrawFunction[OSD_ITEM_COUNT] = {
     [OSD_CAMERA_FRAME]            = NULL,  // only has background. Added first so it's the lowest "layer" and doesn't cover other elements
     [OSD_RSSI_VALUE]              = osdElementRssi,
     [OSD_MAIN_BATT_VOLTAGE]       = osdElementMainBatteryVoltage,
+    [OSD_MIN_CELL_VOLTAGE]        = osdElementMinCellVoltage,
     [OSD_CROSSHAIRS]              = osdElementCrosshairs,  // only has background, but needs to be over other elements (like artificial horizon)
 #ifdef USE_ACC
     [OSD_ARTIFICIAL_HORIZON]      = osdElementArtificialHorizon,
