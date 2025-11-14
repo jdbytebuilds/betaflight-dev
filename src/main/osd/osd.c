@@ -150,6 +150,12 @@ static bool suppressStatsDisplay = false;
 
 static bool backgroundLayerSupported = false;
 
+// Track the minimum *cell* voltage for the entire power session (centivolts)
+static int16_t osdMinCellVoltageSession = 5000; // sentinel high
+
+int16_t osdGetSessionMinCellVoltage(void) { return osdMinCellVoltageSession; }
+void osdResetSessionMinCellVoltage(void) { osdMinCellVoltageSession = 5000; }
+
 #ifdef USE_ESC_SENSOR
 escSensorData_t *osdEscDataCombined;
 #endif
@@ -516,6 +522,8 @@ static void osdCompleteInitialization(void)
     osdElementsInit(backgroundLayerSupported);
     osdAnalyzeActiveElements();
 
+    osdResetSessionMinCellVoltage(); 
+
     osdIsReady = true;
 }
 
@@ -584,6 +592,7 @@ static void osdResetStats(void)
     stats.max_current     = 0;
     stats.max_speed       = 0;
     stats.min_voltage     = 5000;
+    stats.min_cell_voltage = 5000;
     stats.end_voltage     = 0;
     stats.min_rssi        = 99; // percent
     stats.max_altitude    = 0;
@@ -638,6 +647,19 @@ static void osdUpdateStats(void)
     value = getStatsVoltage();
     if (stats.min_voltage > value) {
         stats.min_voltage = value;
+    }
+
+    // Read average *cell* voltage once (centivolts per cell)
+    const uint16_t cellCv = getBatteryAverageCellVoltage();
+
+    // Per-arm minimum *cell* voltage
+    if (stats.min_cell_voltage > cellCv) {
+        stats.min_cell_voltage = cellCv;
+    }
+
+    // Whole-battery (power-session) minimum *cell* voltage
+    if (cellCv != 0 && cellCv < (uint16_t)osdMinCellVoltageSession) {
+        osdMinCellVoltageSession = (int16_t)cellCv;
     }
 
     value = getAmperage() / 100;

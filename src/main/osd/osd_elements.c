@@ -798,6 +798,34 @@ static void osdElementAverageCellVoltage(osdElementParms_t *element)
     osdPrintFloat(element->buff, osdGetBatterySymbol(cellV), cellV / 100.0f, "", 2, false, SYM_VOLT);
 }
 
+static void osdElementMinCellVoltage(osdElementParms_t *e)
+{
+    // Minimum avg cell voltage this flight - Resets on ARM (centivolts).
+    int16_t v = (int16_t)osdGetStats()->min_cell_voltage;
+
+    // Fallback to current avg cell if not initialized yet.
+    if (v < 1 || v > 4999) {
+        v = getBatteryAverageCellVoltage();
+    }
+
+    // Show a battery icon that matches the voltage level
+    osdPrintFloat(e->buff, osdGetBatterySymbol(v), v / 100.0f, "", 2, false, SYM_VOLT);
+}
+
+static void osdElementMinCellVoltageSession(osdElementParms_t *e)
+{
+    // Minimum avg cell voltage for the whole power session (centivolts).
+    int16_t v = osdGetSessionMinCellVoltage();
+
+    // Fallback to current avg cell if not initialized yet.
+    if (v < 1 || v > 4999) {
+        v = getBatteryAverageCellVoltage();
+    }
+
+    // Show a battery icon that matches the voltage level
+    osdPrintFloat(e->buff, osdGetBatterySymbol(v), v / 100.0f, "", 2, false, SYM_VOLT);
+}
+
 static void osdElementCompassBar(osdElementParms_t *element)
 {
     memcpy(element->buff, compassBar + osdGetHeadingIntoDiscreteDirections(DECIDEGREES_TO_DEGREES(attitude.values.yaw), 16), 9);
@@ -1783,6 +1811,8 @@ static void osdElementAirmodeOff(osdElementParms_t *e)
 
 static const uint8_t osdElementDisplayOrder[] = {
     OSD_MAIN_BATT_VOLTAGE,
+    OSD_MIN_CELL_VOLTAGE,
+    OSD_MIN_CELL_VOLTAGE_SESSION,
     OSD_RSSI_VALUE,
     OSD_CROSSHAIRS,
     OSD_HORIZON_SIDEBARS,
@@ -1885,6 +1915,8 @@ const osdElementDrawFn osdElementDrawFunction[OSD_ITEM_COUNT] = {
     [OSD_CAMERA_FRAME]            = NULL,  // only has background. Added first so it's the lowest "layer" and doesn't cover other elements
     [OSD_RSSI_VALUE]              = osdElementRssi,
     [OSD_MAIN_BATT_VOLTAGE]       = osdElementMainBatteryVoltage,
+    [OSD_MIN_CELL_VOLTAGE]        = osdElementMinCellVoltage,
+    [OSD_MIN_CELL_VOLTAGE_SESSION] = osdElementMinCellVoltageSession,
     [OSD_CROSSHAIRS]              = osdElementCrosshairs,  // only has background, but needs to be over other elements (like artificial horizon)
 #ifdef USE_ACC
     [OSD_ARTIFICIAL_HORIZON]      = osdElementArtificialHorizon,
